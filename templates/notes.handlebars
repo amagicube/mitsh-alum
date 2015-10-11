@@ -1,0 +1,20 @@
+<div id="notes">
+
+  <p>Welcome, {{currentUser}} (<a href="#" id="logout-link">logout</a>)</p>
+  
+  <div>
+    <div class="error"></div>
+    <label for="new-note-input">Add a new tweet:</label>
+    <input type="text" id="new-note-input" />
+    <button id="submit-new-note">Add</button>
+  </div>
+
+  <h1>Tweet Feed</h1>
+
+  {{#each notes}}
+    {{> note}}
+  {{else}}
+    <p><em>No notes yet!</em></p>
+  {{/each}}
+
+</div>
