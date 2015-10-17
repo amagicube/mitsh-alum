@@ -10,10 +10,24 @@ require('handlebars/runtime');
 // Import route handlers
 var index = require('./routes/index');
 var users = require('./routes/users');
-var notes = require('./routes/notes');
+var tweets = require('./routes/tweets');
+var follow = require('./routes/follow');
 
 // Import User model
 var User = require('./models/User')
+var Creator = require('./models/Creator')
+
+
+
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/fritter');
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function (callback) {
+    console.log("database connected");
+});
+
+
 
 var app = express();
 
@@ -34,17 +48,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 // user object based off the username provided
 // in the session variable (accessed by the
 // encrypted cookied).
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   if (req.session.username) {
-    User.findByUsername(req.session.username, 
-      function(err, user) {
-        if (user) {
-          req.currentUser = user;
-        } else {
-          req.session.destroy();
-        }
-        next();
-      });
+    Creator.findOne( { 'username': req.session.username }, function (err, user) {
+      if (user) {
+        req.currentUser = user;
+      } else {
+        req.session.destroy();
+      }
+      next();
+    });
+
+
+    // User.findByUsername(req.session.username, 
+    //   function(err, user) {
+    //     if (user) {
+    //       req.currentUser = user;
+    //     } else {
+    //       req.session.destroy();
+    //     }
+    //     next();
+    //   });
   } else {
       next();
   }
@@ -53,7 +77,8 @@ app.use(function(req, res, next) {
 // Map paths to imported route handlers
 app.use('/', index);
 app.use('/users', users);
-app.use('/notes', notes);
+app.use('/tweets', tweets);
+app.use('/follow', follow);
 
 
 // ERROR HANDLERS

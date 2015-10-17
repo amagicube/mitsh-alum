@@ -2,7 +2,7 @@
 // a re-usable fragment of HTML called a "partial" which
 // may be inserted somewhere in the DOM using a function
 // call instead of manual insertion of an HTML String.
-Handlebars.registerPartial('note', Handlebars.templates['note']);
+Handlebars.registerPartial('tweet', Handlebars.templates['tweet']);
 
 // Global variable set when a user is logged in. Note
 // that this is unsafe on its own to determine this: we 
@@ -15,27 +15,37 @@ currentUser = undefined;
 // fills the main container div with some specified 
 // template based on the relevant action.
 
-var loadPage = function(template, data) {
+var loadPage = function (template, data) {
 	data = data || {};
 	$('#main-container').html(Handlebars.templates[template](data));
 };
 
-var loadHomePage = function() {
+var loadHomePage = function () {
 	if (currentUser) {
-		loadNotesPage();
+		loadFeedPage();
 	} else {
 		loadPage('index');
 	}
 };
 
-var loadNotesPage = function() {
-	$.get('/notes', function(response) {
-		loadPage('notes', { notes: response.content.notes, currentUser: currentUser });
+var loadFeedPage = function () {
+	$.get('/tweets', function(response) {
+		loadPage('tweets', { tweets: response.content.tweets, currentUser: currentUser });
+		$('#show-follow').show();
+		$('#show-all').hide();
 	});
 };
 
-$(document).ready(function() {
-	$.get('/users/current', function(response) {
+var loadFollowingPage = function () {
+	$.get('/follow', function (response) {
+		loadPage('tweets', { tweets: response.content.tweets, currentUser: currentUser });
+		$('#show-follow').hide();
+		$('#show-all').show();
+	});
+};
+
+$(document).ready(function () {
+	$.get('/users/current', function (response) {
 		if (response.content.loggedIn) {
 			currentUser = response.content.user;
 		}
@@ -46,6 +56,17 @@ $(document).ready(function() {
 $(document).on('click', '#home-link', function(evt) {
 	evt.preventDefault();
 	loadHomePage();
+});
+
+$(document).on('click', '#show-all', function(evt) {
+	evt.preventDefault();
+	loadHomePage();
+});
+
+
+$(document).on('click', '#show-follow', function(evt) {
+	evt.preventDefault();
+	loadFollowingPage();
 });
 
 $(document).on('click', '#signin-btn', function(evt) {

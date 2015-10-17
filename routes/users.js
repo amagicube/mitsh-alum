@@ -107,6 +107,20 @@ router.post('/', function(req, res) {
   });
 });
 
+
+
+router.post('/follow', function(req, res) {
+  User.follow(req.currentUser.username, req.body.content, function(err, followee) {
+    if (err) {
+      utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+    } else {
+      utils.sendSuccessResponse(res);
+    }
+  });
+});
+
+
+
 /*
   Determine whether there is a current user logged in
 
