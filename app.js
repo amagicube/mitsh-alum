@@ -15,7 +15,6 @@ var follow = require('./routes/follow');
 
 // Import User model
 var User = require('./models/User')
-var Creator = require('./models/Creator')
 
 
 
@@ -50,7 +49,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // encrypted cookied).
 app.use(function (req, res, next) {
   if (req.session.username) {
-    Creator.findOne( { 'username': req.session.username }, function (err, user) {
+    User.findByUsername(req.session.username, function (err, user) {
       if (user) {
         req.currentUser = user;
       } else {
@@ -58,17 +57,6 @@ app.use(function (req, res, next) {
       }
       next();
     });
-
-
-    // User.findByUsername(req.session.username, 
-    //   function(err, user) {
-    //     if (user) {
-    //       req.currentUser = user;
-    //     } else {
-    //       req.session.destroy();
-    //     }
-    //     next();
-    //   });
   } else {
       next();
   }

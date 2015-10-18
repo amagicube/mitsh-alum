@@ -1,12 +1,13 @@
 
 <div class="tweet" data-tweet-id={{_id}} data-creator="{{creatorId}}">
   <p class="content">{{content}}</p>
-  <p>Tweeted by {{creator}} at {{timeString}}</p>
+  <p>Tweeted by {{creator}} at {{timeString}}
   {{#if retweet}}
-    <p>Retweeted from {{retweet}}</p>
+    : Retweeted from {{retweet}}
   {{/if}}
+  </p>
   <a href="#" class="retweet">Retweet</a>
-  {{#if userIsAuthor}}
+  {{#if userIsCreator}}
     <a href="#" class="delete-tweet">Delete</a>
   {{/if}}
 </div>

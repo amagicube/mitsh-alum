@@ -10,6 +10,8 @@ Handlebars.registerPartial('tweet', Handlebars.templates['tweet']);
 // for convenience across all client-side code.
 currentUser = undefined;
 
+currentPageIsAll = true;
+
 // A few global convenience methods for rendering HTML
 // on the client. Note that the loadPage methods below
 // fills the main container div with some specified 
@@ -22,7 +24,11 @@ var loadPage = function (template, data) {
 
 var loadHomePage = function () {
 	if (currentUser) {
-		loadFeedPage();
+		if (currentPageIsAll) {
+			loadFeedPage();
+		} else {
+			loadFollowingPage();
+		}
 	} else {
 		loadPage('index');
 	}
@@ -33,6 +39,9 @@ var loadFeedPage = function () {
 		loadPage('tweets', { tweets: response.content.tweets, currentUser: currentUser });
 		$('#show-follow').show();
 		$('#show-all').hide();
+		$('#title').text('All Tweets');
+		$('#switch-view').text('Show Tweets of People You Are Following');
+		currentPageIsAll = true;
 	});
 };
 
@@ -41,6 +50,9 @@ var loadFollowingPage = function () {
 		loadPage('tweets', { tweets: response.content.tweets, currentUser: currentUser });
 		$('#show-follow').hide();
 		$('#show-all').show();
+		$('#title').text('Tweets of People You Are Following');
+		$('#switch-view').text('Show All Tweets');
+		currentPageIsAll = false;
 	});
 };
 
@@ -58,19 +70,29 @@ $(document).on('click', '#home-link', function(evt) {
 	loadHomePage();
 });
 
-$(document).on('click', '#show-all', function(evt) {
-	evt.preventDefault();
-	loadHomePage();
-});
+// $(document).on('click', '#show-all', function(evt) {
+// 	evt.preventDefault();
+// 	loadFeedPage();
+// });
 
 
-$(document).on('click', '#show-follow', function(evt) {
+// $(document).on('click', '#show-follow', function(evt) {
+// 	evt.preventDefault();
+// 	loadFollowingPage();
+// });
+
+$(document).on('click', '#switch-view', function(evt) {
 	evt.preventDefault();
-	loadFollowingPage();
+	if (currentPageIsAll) {
+		loadFollowingPage();
+	} else {
+		loadFeedPage();
+	}
 });
 
 $(document).on('click', '#signin-btn', function(evt) {
 	loadPage('signin');
+	currentPageIsAll = true;
 });
 
 $(document).on('click', '#register-btn', function(evt) {

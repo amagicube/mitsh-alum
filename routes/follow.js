@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 var utils = require('../utils/utils');
 
-var User = require('../models/User')
+var User = require('../models/User');
+var Tweet = require('../models/Tweet');
 
 /*
   Require authentication on ALL access to /notes/*
@@ -34,11 +35,24 @@ router.all('*', requireAuthentication);
     - err: on failure, an error message
 */
 router.get('/', function (req, res) {
-  User.getFollowingTweets(req.currentUser.username, function (err, tweets) {
+  // User.findByUsername(req.currentUser.username, function (err, user) {
+  //   if (err) {
+  //     utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+  //   } else {
+
+  //   }
+  // });
+  User.getFollowingTweetIds(req.currentUser.username, function (err, tweetIds) {
     if (err) {
       utils.sendErrResponse(res, 500, 'An unknown error occurred.');
     } else {
-      utils.sendSuccessResponse(res, { tweets: tweets });
+      Tweet.getTweets(req.currentUser.username, function (er, tweets) {
+        if (er) {
+          utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+        } else {
+          utils.sendSuccessResponse(res, { tweets: tweets });
+        }
+      }, tweetIds);
     }
   });
 });

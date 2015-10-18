@@ -54,7 +54,7 @@ var requireContent = function (req, res, next) {
 router.param('tweet', function (req, res, next, tweetId) {
 
   // Tweet.getDescription(function (tweetId)) /*+*/
-  Tweet.findOne({ '_id': tweetId }, function (err, tweet) {
+  Tweet.getTweet(tweetId, function (err, tweet) {
     if (tweet) {
       req.tweet = tweet;
       next();
@@ -62,15 +62,6 @@ router.param('tweet', function (req, res, next, tweetId) {
       utils.sendErrResponse(res, 404, 'Resource not found.');
     }
   });
-
-  // User.getTweet(req.currentUser.username, tweetId, function (err, tweet) {
-  //   if (tweet) {
-  //     req.tweet = tweet;
-  //     next();
-  //   } else {
-  //     utils.sendErrResponse(res, 404, 'Resource not found.');
-  //   }
-  // });
 });
 
 // Register the middleware handlers above.
@@ -94,7 +85,7 @@ router.post('*', requireContent);
     - err: on failure, an error message
 */
 router.get('/', function (req, res) {
-  User.getAllTweets(req.currentUser.username, function (err, tweets) {
+  Tweet.getTweets(req.currentUser.username, function (err, tweets) {
     if (err) {
       utils.sendErrResponse(res, 500, 'An unknown error occurred.');
     } else {
@@ -126,12 +117,25 @@ router.get('/:tweet', function (req, res) {
     - err: on failure, an error message
 */
 router.post('/', function (req, res) {
-  User.addTweet(req.currentUser.username, req.body.content, req.body.retweetedFrom, function (err, tweet) {
+  User.findByUsername(req.currentUser.username, function (err, user) {
     if (err) {
-      console.log(err);
       utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+    } else if (!user) {
+      utils.sendErrResponse(res, 404, 'Invalid user');
     } else {
-      utils.sendSuccessResponse(res);
+      Tweet.addTweet(req.body.content, user._id, req.body.retweetedFrom, function (er, tweet) {
+        if (er) {
+          utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+        } else {
+          User.addTweet(req.currentUser.username, tweet._id, function (e) {
+            if (e) {
+              utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+            } else {
+              utils.sendSuccessResponse(res);
+            }
+          });
+        }
+      });
     }
   });
 });
@@ -145,15 +149,26 @@ router.post('/', function (req, res) {
     - err: on failure, an error message
 */
 router.delete('/:tweet', function (req, res) {
-  User.removeTweet(
-    req.currentUser.username, 
-    req.tweet._id, 
-    function(err) {
-      if (err) {
-        utils.sendErrResponse(res, 500, 'An unknown error occurred.');
-      } else {
-        utils.sendSuccessResponse(res);
-      }
+  User.findByUsername(req.currentUser.username, function (err, user) {
+    if (err) {
+      utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+    } else if (!user) {
+      utils.sendErrResponse(res, 404, 'Invalid user');
+    } else {
+      User.removeTweet(req.currentUser.username, req.tweet._id, function (er) {
+        if (er) {
+          utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+        } else {
+          Tweet.removeTweet(req.tweet._id, function (e) {
+            if (e) {
+              utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+            } else {
+              utils.sendSuccessResponse(res);
+            }
+          });
+        }
+      })
+    }
   });
 });
 

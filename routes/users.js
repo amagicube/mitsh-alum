@@ -10,7 +10,7 @@ var User = require('../models/User');
   This function returns true if an error code was sent; the caller should return
   immediately in this case.
 */
-var isLoggedInOrInvalidBody = function(req, res) {
+var isLoggedInOrInvalidBody = function (req, res) {
   if (req.currentUser) {
     utils.sendErrResponse(res, 403, 'There is already a user logged in.');
     return true;
@@ -43,7 +43,7 @@ router.post('/login', function(req, res) {
     return;
   }
 
-  User.verifyPassword(req.body.username, req.body.password, function(err, match) {
+  User.verifyPassword(req.body.username, req.body.password, function (err, match) {
     if (match) {
       req.session.username = req.body.username;
       utils.sendSuccessResponse(res, { user : req.body.username });
@@ -60,7 +60,7 @@ router.post('/login', function(req, res) {
     - success: true if logout succeeded; false otherwise
     - err: on error, an error message
 */
-router.post('/logout', function(req, res) {
+router.post('/logout', function (req, res) {
   if (req.currentUser) {
     req.session.destroy();
     utils.sendSuccessResponse(res);
@@ -88,7 +88,7 @@ router.post('/logout', function(req, res) {
     - success: true if user creation succeeded; false otherwise
     - err: on error, an error message
 */
-router.post('/', function(req, res) {
+router.post('/', function (req, res) {
   if (isLoggedInOrInvalidBody(req, res)) {
     return;
   }
@@ -110,9 +110,15 @@ router.post('/', function(req, res) {
 
 
 router.post('/follow', function(req, res) {
-  User.follow(req.currentUser.username, req.body.content, function(err, followee) {
+  User.follow(req.currentUser.username, req.body.content, function (err, followee) {
     if (err) {
-      utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+      if (err.code === 1) {
+        utils.sendErrResponse(res, 404, err.msg);
+      } else if (err.code === 2) {
+        utils.sendErrResponse(res, 400, err.msg);
+      } else {
+        utils.sendErrResponse(res, 500, 'An unknown error occurred.');
+      }
     } else {
       utils.sendSuccessResponse(res);
     }
@@ -130,7 +136,7 @@ router.post('/follow', function(req, res) {
     - success.loggedIn: true if there is a user logged in; false otherwise
     - success.user: if success.loggedIn, the currently logged in user
 */
-router.get('/current', function(req, res) {
+router.get('/current', function (req, res) {
   if (req.currentUser) {
     utils.sendSuccessResponse(res, { loggedIn : true, user : req.currentUser.username });
   } else {
